@@ -31,22 +31,23 @@ end
 
 set :casper, {
   blog: {
-    url: 'http://www.example.com',
-    name: 'Middleman',
-    description: 'Makes developing websites simple.',
+    url: 'http://www.bradleymosesjohnson.com/',
+    name: 'Brad Johnson',
+    description: 'Where I write about software development',
     date_format: '%d %B %Y',
     navigation: true,
     logo: nil # Optional
   },
   author: {
-    name: 'Middleman',
+    name: 'Brad Johnson',
     bio: nil, # Optional
     location: nil, # Optional
     website: nil, # Optional
     gravatar_email: nil # Optional
   },
   navigation: {
-    "Home" => "/"
+    "Home" => "/",
+    "GitHub" => "https://github.com/cdale77"
   }
 }
 
