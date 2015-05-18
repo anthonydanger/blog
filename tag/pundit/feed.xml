@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Brad Johnson: pundit</title>
+  <subtitle>Posts tagged with pundit</subtitle>
+  <id>http://www.bradleymosesjohnson.com/</id>
+  <link href="http://www.bradleymosesjohnson.com/"/>
+  <link href="http://www.bradleymosesjohnson.com/tag/pundit/feed.xml" rel="self"/>
+  <updated>2015-02-05T16:00:00-08:00</updated>
+  <author>
+    <name>Brad Johnson</name>
+  </author>
+  <entry>
+    <title>Rails Multitenancy with Pundit</title>
+    <link rel="alternate" href="http://www.bradleymosesjohnson.com/2014/06/17/rails-multitenancy-with-pundit/"/>
+    <id>http://www.bradleymosesjohnson.com/2014/06/17/rails-multitenancy-with-pundit/</id>
+    <published>2014-06-17T12:16:59-07:00</published>
+    <updated>2015-05-17T16:52:42-07:00</updated>
+    <author>
+      <name>Brad Johnson</name>
+    </author>
+    <summary type="html">I just finished building my first multi-tenant app with Rails. I used Pundit’s policy scopes to handle scoping the index
+views, and used a many-to-many relationship between users and my tenant model. Below is a description of how I set
+everything up.</summary>
+  </entry>
+</feed>

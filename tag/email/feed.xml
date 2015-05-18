@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Brad Johnson: email</title>
+  <subtitle>Posts tagged with email</subtitle>
+  <id>http://www.bradleymosesjohnson.com/</id>
+  <link href="http://www.bradleymosesjohnson.com/"/>
+  <link href="http://www.bradleymosesjohnson.com/tag/email/feed.xml" rel="self"/>
+  <updated>2015-02-05T16:00:00-08:00</updated>
+  <author>
+    <name>Brad Johnson</name>
+  </author>
+  <entry>
+    <title>Sendy on EC2</title>
+    <link rel="alternate" href="http://www.bradleymosesjohnson.com/2014/06/17/sendy-on-ec2/"/>
+    <id>http://www.bradleymosesjohnson.com/2014/06/17/sendy-on-ec2/</id>
+    <published>2014-06-17T12:15:29-07:00</published>
+    <updated>2015-05-17T16:54:25-07:00</updated>
+    <author>
+      <name>Brad Johnson</name>
+    </author>
+    <summary type="html">I’m doing some work for a nonprofit organization with a growing email list. Last month we passed 10,000 subscribers. 
+Not a massive list, but our current platform was getting a little expensive. I looked at switching to MailChimp, but
+found their terms</summary>
+  </entry>
+</feed>

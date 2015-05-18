@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Brad Johnson: ActBlue API</title>
+<meta content='I recently set up a Rails app to use the ActBlue XML API. The goal was to use their API to pull down contribution information across campaigns. ...' name='description'>
+<meta charset='utf-8'>
+<meta content='width=device-width, initial-scale=1.0' name='viewport'>
+<meta content='IE=edge' http-equiv='X-UA-Compatible'>
+<meta content='True' name='HandheldFriendly'>
+<link rel="alternate" type="application/atom+xml" title="Atom Feed" href="/feed.xml" />
+<link href="/images/favicon.ico" rel="icon" type="image/ico" />
+<link href="/stylesheets/application.css" rel="stylesheet" type="text/css" />
+<link href='//fonts.googleapis.com/css?family=Merriweather:300,700,700italic,300italic|Open+Sans:700,400' rel='stylesheet' type='text/css'>
+</head>
+<body class='post-template nav-closed'>
+<div class='nav'>
+<h3 class='nav-title'>Menu</h3>
+<a class='nav-close' href='#'>
+<span class='hidden'>Close</span>
+</a>
+<ul>
+<li class='nav-home' role='presentation'>
+<a href='/'>Home</a>
+</li>
+<li class='nav-github' role='presentation'>
+<a href='https://github.com/cdale77'>GitHub</a>
+</li>
+</ul>
+<a class='subscribe-button icon-feed' href='/feed.xml'>Subscribe</a>
+</div>
+<span class='nav-cover'></span>
+
+<div class='site-wrapper'>
+<header class='main-header no-cover post-head'>
+<nav class='main-nav clearfix'>
+<a class='menu-button icon-menu' href='#'>
+<span class='word'>Menu</span>
+</a>
+</nav>
+</header>
+<main class='content' role='main'>
+<article class='post'>
+<header class='post-header'>
+<h1 class='post-title'>ActBlue API</h1>
+<section class='post-meta'>
+<time class='post-date' datetime='2013-11-04'>
+04 November 2013
+</time>
+on <a href='/tag/rails/'>rails</a>, <a href='/tag/act_blue/'>act_blue</a>, <a href='/tag/api/'>api</a>
+</section>
+</header>
+<section class='post-content'><p>I recently set up a Rails app to use the <a href="https://secure.actblue.com/api">ActBlue XML API</a>. The goal was to use
+their API to pull down contribution information across campaigns. Here
+is what I learned:</p>
+
+<p>The most important thing I learned is that the ActBlue API is no longer
+supported. At least, that&rsquo;s what an ActBlue staffer told my client when
+we informed them of an issue with their API. The API currently works,
+and they don&rsquo;t seem to have plans to turn it off. I&rsquo;m a bit annoyed
+ActBlue didn&rsquo;t mention this on their web site. As I&rsquo;m working on this
+particular project I&rsquo;ve found that APIs offered by companies who&rsquo;s
+primary service is something else are often really spotty. </p>
+
+<p>The first task was to write a simple Ruby wrapper. There&rsquo;s <a href="https://github.com/netroots/ruby-actblue">a gem</a>,
+but it&rsquo;s old, doesn&rsquo;t quite fit my case, and seems overly complex for my
+needs. So I wrote a really simple wrapper:</p>
+<div class="highlight plaintext"><table style="border-spacing: 0"><tbody><tr><td class="gutter gl" style="text-align: right"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27</pre></td><td class="code"><pre>ACTBLUE_URI = "https://secure.actblue.com/api/2009-08"
+HEADER = { 'Accept' =&gt;'application/xml' }
+
+class Campaign
+
+  attr_reader :entity
+
+  def initialize(username, password, entity)
+    @auth = { username: username, password: password }
+    @entity = entity
+  end
+
+  def details
+    HTTParty.get("#{ACTBLUE_URI}/entities/#{@entity.to_s}", basic_auth: @auth, headers: HEADER)
+  end
+
+  def all_contributions
+    HTTParty.get("#{ACTBLUE_URI}/contributions?destination=#{@entity.to_s}", basic_auth: @auth, headers: HEADER)
+  end
+
+  # method arguments must be ISO 8601 timestamps (ie Time.now.iso8601)
+  def contributions_in_date_range(start_time = '', end_time = '')
+    HTTParty.get("#{ACTBLUE_URI}/contributions?destination=#{@entity.to_s}&amp;" +
+                 "payment_timestamp=#{start_time.to_s}/#{end_time.to_s}",
+                 basic_auth: @auth, headers: HEADER)
+  end
+end
+</pre></td></tr></tbody></table>
+</div>
+
+<p>The last method is the one I really use; it returns an
+HTTParty::Response object, which I convert to a hash by calling
+the parsed_response method. Unfortunately, the structure of the hash is
+different for results with 1 or many contributions. For now I&rsquo;m pretty
+much manually mapping the hash fields to my ActiveRecord object, and I
+have to do it differently for cases where there is only 1 response.
+Annoying, but I&rsquo;m waiting for the project to move on before I try to
+abstract the whole process to something more elegant. </p>
+
+<p>You can see from my comments the timestamps must be in iso8601 format.
+This is in the docs. But what <em>is not</em> in the docs is ActBlue will
+return a timestamp not valid error if you pass UTC times. In other
+words, if your UTC offset is +0, the API will fail. So I set Heroku to
+work on local time, and all is well. A better approach is probably to
+convert the timestamps to localtime using Ruby, instead of relying on
+the server&rsquo;s configuration, but this works fine for now.</p>
+
+<p>I final thing I learned, also very odd: ActBlue will give you the
+campaign details for <em>any</em> campaign, even if your user doesn&rsquo;t have any
+permissions associated with that campaign. I suppose this is because the
+details are public anyway. But it can cause problems if you, like I did,
+make a quick call to the details API method to verify your API
+credentials. It will work even if you don&rsquo;t have any real permissions
+for that campaign. </p>
+</section>
+<footer class='post-footer'>
+<section class='author'>
+<h4>
+<a href='/author/brad-johnson/'>Brad Johnson</a>
+</h4>
+<p></p>
+Read
+<a href='/author/brad-johnson/'>more posts</a>
+by this author.
+</section>
+<section class='share'>
+<h4>Share this post</h4>
+<a class='icon-twitter' href='https://twitter.com/share?text=ActBlue API&amp;amp;url=http://www.bradleymosesjohnson.com/2013/11/04/actblue-api/' onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+<span class='hidden'>Twitter</span>
+</a>
+<a class='icon-facebook' href='https://www.facebook.com/sharer/sharer.php?u=http://www.bradleymosesjohnson.com/2013/11/04/actblue-api/' onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+<span class='hidden'>Facebook</span>
+</a>
+<a class='icon-google-plus' href='https://plus.google.com/share?url=http://www.bradleymosesjohnson.com/2013/11/04/actblue-api/' onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
+<span class='hidden'>Google+</span>
+</a>
+</section>
+</footer>
+</article>
+</main>
+<aside class='read-next'>
+<a class='no-cover prev read-next-story' href='/2013/11/13/nationbuilder-webhooks/'>
+<section class='post'>
+<h2>NationBuilder Webhooks</h2>
+<p>I recently built a Rails application that integrates with NationBuilder and thought I&rsquo;d share the details. NationBuilder has two&hellip;</p>
+</section>
+</a>
+</aside>
+
+<footer class='site-footer clearfix'>
+<section class='copyright'>
+<a href='/'>Brad Johnson</a>
+&copy;
+2015
+</section>
+<section class='poweredby'>
+Casper theme powered by
+<a href='https://ghost.org'>Ghost</a>
+</section>
+</footer>
+</div>
+<script src="/javascripts/application.js" type="text/javascript"></script>
+</body>
+</html>

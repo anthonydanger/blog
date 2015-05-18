@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Brad Johnson: NationBuilder Webhooks</title>
+<meta content='I recently built a Rails application that integrates with NationBuilder and thought I&amp;rsquo;d share the details. NationBuilder has two APIs. One...' name='description'>
+<meta charset='utf-8'>
+<meta content='width=device-width, initial-scale=1.0' name='viewport'>
+<meta content='IE=edge' http-equiv='X-UA-Compatible'>
+<meta content='True' name='HandheldFriendly'>
+<link rel="alternate" type="application/atom+xml" title="Atom Feed" href="/feed.xml" />
+<link href="/images/favicon.ico" rel="icon" type="image/ico" />
+<link href="/stylesheets/application.css" rel="stylesheet" type="text/css" />
+<link href='//fonts.googleapis.com/css?family=Merriweather:300,700,700italic,300italic|Open+Sans:700,400' rel='stylesheet' type='text/css'>
+</head>
+<body class='post-template nav-closed'>
+<div class='nav'>
+<h3 class='nav-title'>Menu</h3>
+<a class='nav-close' href='#'>
+<span class='hidden'>Close</span>
+</a>
+<ul>
+<li class='nav-home' role='presentation'>
+<a href='/'>Home</a>
+</li>
+<li class='nav-github' role='presentation'>
+<a href='https://github.com/cdale77'>GitHub</a>
+</li>
+</ul>
+<a class='subscribe-button icon-feed' href='/feed.xml'>Subscribe</a>
+</div>
+<span class='nav-cover'></span>
+
+<div class='site-wrapper'>
+<header class='main-header no-cover post-head'>
+<nav class='main-nav clearfix'>
+<a class='menu-button icon-menu' href='#'>
+<span class='word'>Menu</span>
+</a>
+</nav>
+</header>
+<main class='content' role='main'>
+<article class='post'>
+<header class='post-header'>
+<h1 class='post-title'>NationBuilder Webhooks</h1>
+<section class='post-meta'>
+<time class='post-date' datetime='2013-11-13'>
+13 November 2013
+</time>
+on <a href='/tag/webhooks/'>webhooks</a>, <a href='/tag/rails/'>rails</a>, <a href='/tag/api/'>api</a>, <a href='/tag/nation_builder/'>nation_builder</a>
+</section>
+</header>
+<section class='post-content'><p>I recently built a Rails application that integrates with NationBuilder
+and thought I&rsquo;d share the details. NationBuilder has two APIs. One is a
+RESTful API, and the other wis a webhooks API that posts JSON data when
+certain things happen on a NationBuilder site. This post is concerned
+with the latter. The goal is to build a list of donations that occurred
+on a NationBuilder site over a period of time. This is not possible with
+the RESTful API (I guess it&rsquo;s not fully RESTful?). So instead I&rsquo;m
+building a controller to &ldquo;listen&rdquo; for the webhooks payloads and storing
+them. </p>
+
+<p>The first step was to set up a nation to post data. I already have
+access to a nation in production, so I have plenty of live data to deal
+with. I assume if you&rsquo;re reading this you can use The Google to figure
+out how to do this part. You should set up an additional webhook to post
+stuff to requestb.in (or something similar) so you can see what is going
+on. </p>
+
+<p>Next set up a route. Obviously this route must match where you told
+NationBuilder to post to. </p>
+<div class="highlight plaintext"><table style="border-spacing: 0"><tbody><tr><td class="gutter gl" style="text-align: right"><pre class="lineno">1</pre></td><td class="code"><pre>match '/webhooks/nb/create', to: 'nationbuilder#create', via: :post
+</pre></td></tr></tbody></table>
+</div>
+
+<p>This will take anything being posted to myapp.com/webhooks/nb/create and
+rout it to the create action of my nationbuilder controller. </p>
+
+<p>So on to the controller.</p>
+<div class="highlight plaintext"><table style="border-spacing: 0"><tbody><tr><td class="gutter gl" style="text-align: right"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9</pre></td><td class="code"><pre>class NationbuilderController &lt; ApplicationController
+  skip_before_filter
+  protect_from_forgery :except =&gt; :create
+
+  def create
+    render nothing: true
+    # do stuff
+  end
+end
+</pre></td></tr></tbody></table>
+</div>
+
+<p>All I want to do is grab the json and store it to my database using
+ActiveRecord. So I decided to use the create action, though I 
+think #new would probably be fine, too. I&rsquo;ve omitted the code that 
+actually stores the data for clarity. </p>
+
+<p>There are three things to get right, and then it works like magic:
+1) If you have any before filters at all, you probably need to skip
+them. EDIT: The method above doesn&rsquo;t seem to work with Devise. Instead,
+have your NationBuilder controller inherit direction from 
+ActionController::Base. 
+2) protect<em>from</em>forgery turns off a default security feature. You want
+to do this &ndash; the security feature is meant to prevent people posting
+random data to your controller. Since that&rsquo;s exactly what NationBuilder
+will be doing we need to allow this. Notice it&rsquo;s limited to the only
+action we&rsquo;ll be defining. If you are going to be dumping data from the
+JSON payload into a database you should probably be concerned about SQL
+injection. 
+3) Your controller methods need to be told not to render a template.</p>
+
+<p>Testing is another story. I&rsquo;d like to test this with an integration
+test, but I&rsquo;m having a hard time simulating a JSON post. StackOverflow
+is full of info about this but nothing works.  NationBuilder,
+fortunately, lets you send test payloads with a click. So for now I&rsquo;m
+testing the code that way. I&rsquo;ll update this when I figure out the
+integration tests. </p>
+</section>
+<footer class='post-footer'>
+<section class='author'>
+<h4>
+<a href='/author/brad-johnson/'>Brad Johnson</a>
+</h4>
+<p></p>
+Read
+<a href='/author/brad-johnson/'>more posts</a>
+by this author.
+</section>
+<section class='share'>
+<h4>Share this post</h4>
+<a class='icon-twitter' href='https://twitter.com/share?text=NationBuilder Webhooks&amp;amp;url=http://www.bradleymosesjohnson.com/2013/11/13/nationbuilder-webhooks/' onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+<span class='hidden'>Twitter</span>
+</a>
+<a class='icon-facebook' href='https://www.facebook.com/sharer/sharer.php?u=http://www.bradleymosesjohnson.com/2013/11/13/nationbuilder-webhooks/' onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+<span class='hidden'>Facebook</span>
+</a>
+<a class='icon-google-plus' href='https://plus.google.com/share?url=http://www.bradleymosesjohnson.com/2013/11/13/nationbuilder-webhooks/' onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
+<span class='hidden'>Google+</span>
+</a>
+</section>
+</footer>
+</article>
+</main>
+<aside class='read-next'>
+<a class='no-cover read-next-story' href='/2013/11/04/actblue-api/'>
+<section class='post'>
+<h2>ActBlue API</h2>
+<p>I recently set up a Rails app to use the ActBlue XML API. The goal was to use their&hellip;</p>
+</section>
+</a>
+<a class='no-cover prev read-next-story' href='/2014/06/17/sendy-on-ec2/'>
+<section class='post'>
+<h2>Sendy on EC2</h2>
+<p>I&rsquo;m doing some work for a nonprofit organization with a growing email list. Last month we passed 10,000 subscribers.&hellip;</p>
+</section>
+</a>
+</aside>
+
+<footer class='site-footer clearfix'>
+<section class='copyright'>
+<a href='/'>Brad Johnson</a>
+&copy;
+2015
+</section>
+<section class='poweredby'>
+Casper theme powered by
+<a href='https://ghost.org'>Ghost</a>
+</section>
+</footer>
+</div>
+<script src="/javascripts/application.js" type="text/javascript"></script>
+</body>
+</html>

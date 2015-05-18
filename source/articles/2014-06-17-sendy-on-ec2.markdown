@@ -1,0 +1,84 @@
+---
+layout: post
+title: "Sendy on EC2"
+date: 2014-06-17 12:15:29 -0700
+comments: true
+category: rails
+tags: sendy, aws, ec2, email
+---
+I'm doing some work for a nonprofit organization with a growing email list. Last month we passed 10,000 subscribers. 
+Not a massive list, but our current platform was getting a little expensive. I looked at switching to MailChimp, but
+found their terms too restrictive and their service too opinionated. After doing some research I decided to check
+out [Sendy](http://sendy.co/). Sendy is a PHP application you install on a server. It provides an interface for
+using [Amazon SES](http://aws.amazon.com/ses/). You get reports, compose tools, bounce handling, etc. 
+
+I've been using Amazon AWS for a lot more lately (static site hosting with S3, for one thing) so I decided to create an
+EC2 server to host Sendy. Combining EC2 with SES means significant cost savings and a lot more flexibility. Here's a quick
+guide for getting Sendy up and running on an Amazon EC2 instance. 
+
+I wanted this instance to be available on a subdomain: sendy.mydomain.com. When you purchase Sendy you have to
+tell them what domain Sendy will live at, but it's easy to change this later. Assuming you have things squared away with
+the Sendy folks, the first step will be setting up a subdomain. To accomplish this with Route 53,
+click on the hosted zone for your domain in the Route 53 control panel. Then click Go To Record Sets, then Create Record Set. 
+Create an A record with the name of sendy.mydomain.com, then Save Record Set. You'll come back to this later and enter
+the Elastic IP for the Sendy instance in the Value field. 
+
+Now it's time to get an EC2 instance running. Amazon has good documentation. Be sure to go through the
+[setup guide](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/get-set-up-for-amazon-ec2.html) before you go through
+the [main EC2 guide](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EC2_GetStarted.html). Use an Ubuntu image. You might want
+to specify another EBS volume for the Sendy database. Since my instance is dedicated to Sendy I just kept everything under one volume. 
+Another thing to consider when setting up your EC2 instance is turning on termination protection. 
+
+After going through the Amazon guides you should be able to connect to your instance with SSH. 
+    ssh -i path/to/key/file ubuntu@amazon-instance-public-dns
+
+Once connected, update your instance:
+    sudo apt-get update && sudo apt-get upgrade
+
+Next, as specified in the Ubuntu [LAMP docs](https://help.ubuntu.com/community/ApacheMySQLPHP), install a LAMP server:
+    sudo tasksel install lamp-server
+
+Connect to the MySQL database using the password supplied during the taskel install:
+    mysql -u root -p
+
+Create a database for Sendy:
+    CREATE DATABASE sendy;
+
+You should have a basic LAMP stack running at this point. If you go to the public DNS address provided by the EC2 web console, you should see
+the basic Apache success method. 
+
+Now we'll set up an Elastic IP, associate it with the instance, fix Route 53, and all the basic setup will be complete. In the EC2 web console, click
+Elastic IPs (under Network & Security). Allocate a new address and associate it with your Sendy instance. Then, go back to Route 53 and put that new IP
+address in the Value field for the A name record you created for Sendy (sendy.mydomain.com). After this you should be able to see the Apache success page
+via sendy.mydomain.com.
+
+The next few steps involve getting your stack properly configured for Sendy. Enable mod_rewrite:
+    sudo a2enmod rewrite
+
+install curl:
+    sudo apt-get install php5-curl
+
+and restart Apache:
+    sudo /etc/init.d/apache2 restart
+
+Note, this did not work for me for restarting Apache:
+    sudo service apache2 restart
+
+When I was getting this all working I saw a lot of things on Stack Overflow about editing the php.ini file to point to the curl library and turn on mod_rewrite.
+I didn't have to do that, but your mileage may vary. If you are having problems getting Sendy to work I'd look at php.ini. In my version of Ubuntu (13.10) php.ini
+lives at /etc/php5/apache2/php.ini.
+
+I got this far and then had all kinds of problems until I realized I had to modify the Apache2 configuration file to allow the mod_overwrite extension. 
+The latter is required by Sendy. I don't claim to understand it, but it's related to Apache redirecting. So, you need to look at 
+/etc/apache2/sites-available/000-default.conf. Since this instance is dedicated to Sendy I just made my changes to the default configuration. Put this inside
+the VirtualHost *:80 if you are changing the default file like me, or in the proper section if you have more than one virtual host. 
+
+    <Directory /var/www/html/>
+      AllowOverride All
+    </Directory>
+
+  Ok, now you should be ready to follow the Sendy docs to finish the setup. Install Sendy in /var/wwww/html - not sure if that's required but Sendy support staff
+  suggested this in a form post. My working configuration, on which this is based, is installed in /var/www/html. The docs tell you to edit the config file 
+  locally before transferring the Sendy director to the server. I found it easier to use wget and S3 to get the original zip archive on the sever (use
+  apt-get to install unzip), and then use vim via ssh to edit the config file. 
+

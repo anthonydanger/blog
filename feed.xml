@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Brad Johnson</title>
+  <subtitle>Where I write about software development</subtitle>
+  <id>http://www.bradleymosesjohnson.com/</id>
+  <link href="http://www.bradleymosesjohnson.com/"/>
+  <link href="http://www.bradleymosesjohnson.com/feed.xml" rel="self"/>
+  <updated>2015-02-05T16:00:00-08:00</updated>
+  <author>
+    <name>Brad Johnson</name>
+  </author>
+  <entry>
+    <title>Backup Dropbox with Raspberry Pi</title>
+    <link rel="alternate" href="http://www.bradleymosesjohnson.com/2015/02/06/backup-dropbox-with-raspberry-pi/"/>
+    <id>http://www.bradleymosesjohnson.com/2015/02/06/backup-dropbox-with-raspberry-pi/</id>
+    <published>2015-02-05T16:00:00-08:00</published>
+    <updated>2015-05-17T17:03:03-07:00</updated>
+    <author>
+      <name>Brad Johnson</name>
+    </author>
+    <summary type="html">With the recent release of the 
+Raspberry Pi 2 I thought
+it would be good to document what I’m doing with my old one. I’ve tried to use
+it as a media center or network backup drive. Neither of those really seemed
+that useful. But I’ve finally found something</summary>
+  </entry>
+  <entry>
+    <title>Rails Internationalization</title>
+    <link rel="alternate" href="http://www.bradleymosesjohnson.com/2014/12/15/rails-internationalization/"/>
+    <id>http://www.bradleymosesjohnson.com/2014/12/15/rails-internationalization/</id>
+    <published>2014-12-14T16:00:00-08:00</published>
+    <updated>2015-05-17T17:00:40-07:00</updated>
+    <author>
+      <name>Brad Johnson</name>
+    </author>
+    <summary type="html">This post outlines an easy way to make Rails raise an exception when it finds
+missing I18n keys. This is helpful in development and testing environments as a
+way to quickly find and correct missing translation keys.
+
+Background
+
+Ruby on Rails provides</summary>
+  </entry>
+  <entry>
+    <title>Fragment caching in Rails 4</title>
+    <link rel="alternate" href="http://www.bradleymosesjohnson.com/2014/10/08/fragment-caching-in-rails-4/"/>
+    <id>http://www.bradleymosesjohnson.com/2014/10/08/fragment-caching-in-rails-4/</id>
+    <published>2014-10-07T17:00:00-07:00</published>
+    <updated>2015-05-17T17:01:39-07:00</updated>
+    <author>
+      <name>Brad Johnson</name>
+    </author>
+    <summary type="html">Recently I implemented a nested caching scheme in a Rails application. I ran
+into a couple of interesting problems and found the documentation confusing, so
+I thought I’d write up what I did. This post is aimed at somebody new to 
+caching. 
+
+What is caching</summary>
+  </entry>
+  <entry>
+    <title>ActiveRecord Models</title>
+    <link rel="alternate" href="http://www.bradleymosesjohnson.com/2014/08/19/rails-models/"/>
+    <id>http://www.bradleymosesjohnson.com/2014/08/19/rails-models/</id>
+    <published>2014-08-18T17:00:00-07:00</published>
+    <updated>2015-05-17T17:00:55-07:00</updated>
+    <author>
+      <name>Brad Johnson</name>
+    </author>
+    <summary type="html">This post is a writeup of a RailsSchool 
+class on 14-08-19 on 
+ActiveRecord models. 
+
+What is a model?
+
+In web programming, model generally refers to the “M” in MVC. The model’s job is 
+to be an interface to your database. More precisely, the model is</summary>
+  </entry>
+  <entry>
+    <title>Multitenancy Part Two</title>
+    <link rel="alternate" href="http://www.bradleymosesjohnson.com/2014/07/09/multitenancy-part-two/"/>
+    <id>http://www.bradleymosesjohnson.com/2014/07/09/multitenancy-part-two/</id>
+    <published>2014-07-08T17:00:00-07:00</published>
+    <updated>2015-05-17T16:56:54-07:00</updated>
+    <author>
+      <name>Brad Johnson</name>
+    </author>
+    <summary type="html">In my previous post I wrote 
+about who to create a multi-tenant Rails application using the Pundit gem.
+
+I’ve been living with this design for a month or so now and it’s worked well so
+far. One case where it does not work well is when I want to have a</summary>
+  </entry>
+  <entry>
+    <title>Rails Multitenancy with Pundit</title>
+    <link rel="alternate" href="http://www.bradleymosesjohnson.com/2014/06/17/rails-multitenancy-with-pundit/"/>
+    <id>http://www.bradleymosesjohnson.com/2014/06/17/rails-multitenancy-with-pundit/</id>
+    <published>2014-06-17T12:16:59-07:00</published>
+    <updated>2015-05-17T16:52:42-07:00</updated>
+    <author>
+      <name>Brad Johnson</name>
+    </author>
+    <summary type="html">I just finished building my first multi-tenant app with Rails. I used Pundit’s policy scopes to handle scoping the index
+views, and used a many-to-many relationship between users and my tenant model. Below is a description of how I set
+everything up.</summary>
+  </entry>
+</feed>

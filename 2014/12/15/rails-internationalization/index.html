@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Brad Johnson: Rails Internationalization</title>
+<meta content='This post outlines an easy way to make Rails raise an exception when it finds missing I18n keys. This is helpful in development and testing envi...' name='description'>
+<meta charset='utf-8'>
+<meta content='width=device-width, initial-scale=1.0' name='viewport'>
+<meta content='IE=edge' http-equiv='X-UA-Compatible'>
+<meta content='True' name='HandheldFriendly'>
+<link rel="alternate" type="application/atom+xml" title="Atom Feed" href="/feed.xml" />
+<link href="/images/favicon.ico" rel="icon" type="image/ico" />
+<link href="/stylesheets/application.css" rel="stylesheet" type="text/css" />
+<link href='//fonts.googleapis.com/css?family=Merriweather:300,700,700italic,300italic|Open+Sans:700,400' rel='stylesheet' type='text/css'>
+</head>
+<body class='post-template nav-closed'>
+<div class='nav'>
+<h3 class='nav-title'>Menu</h3>
+<a class='nav-close' href='#'>
+<span class='hidden'>Close</span>
+</a>
+<ul>
+<li class='nav-home' role='presentation'>
+<a href='/'>Home</a>
+</li>
+<li class='nav-github' role='presentation'>
+<a href='https://github.com/cdale77'>GitHub</a>
+</li>
+</ul>
+<a class='subscribe-button icon-feed' href='/feed.xml'>Subscribe</a>
+</div>
+<span class='nav-cover'></span>
+
+<div class='site-wrapper'>
+<header class='main-header no-cover post-head'>
+<nav class='main-nav clearfix'>
+<a class='menu-button icon-menu' href='#'>
+<span class='word'>Menu</span>
+</a>
+</nav>
+</header>
+<main class='content' role='main'>
+<article class='post'>
+<header class='post-header'>
+<h1 class='post-title'>Rails Internationalization</h1>
+<section class='post-meta'>
+<time class='post-date' datetime='2014-12-15'>
+15 December 2014
+</time>
+on <a href='/tag/rails/'>rails</a>, <a href='/tag/i18n/'>i18n</a>
+</section>
+</header>
+<section class='post-content'><p>This post outlines an easy way to make Rails raise an exception when it finds
+missing I18n keys. This is helpful in development and testing environments as a
+way to quickly find and correct missing translation keys.</p>
+
+<h2>Background</h2>
+
+<p>Ruby on Rails provides support for making your application work with different
+languages. In other words, Rails provides a framework for making sure that
+things like column names and other bits of natural language can be translated
+between many different languages. This support is provided by the I18n gem,
+which is included with Rails. The Rails Guide for this is 
+<a href="http://guides.rubyonrails.org/i18n.html">here</a>.</p>
+
+<h2>Keys</h2>
+
+<p>There are many ways to implement I18n support in your application. A common way
+is to use the #translate or #t helper method provided by Rails. This method
+takes a key as an argument and returns the string specified in the appropriate
+yaml file. You can also call I18n.translate directly.</p>
+<div class="highlight plaintext"><table style="border-spacing: 0"><tbody><tr><td class="gutter gl" style="text-align: right"><pre class="lineno">1</pre></td><td class="code"><pre>t(".my_key")
+</pre></td></tr></tbody></table>
+</div>
+
+<p>or </p>
+<div class="highlight plaintext"><table style="border-spacing: 0"><tbody><tr><td class="gutter gl" style="text-align: right"><pre class="lineno">1</pre></td><td class="code"><pre>I18n.translate(".my_key")
+</pre></td></tr></tbody></table>
+</div>
+
+<h2>Problem</h2>
+
+<p>The only difference between calling translate() (or t()) and I18n.t() is the latter
+will rescue any exceptions
+that arise from missing keys, and return a formatting html string with a
+humanized version of the key. In other words, if Rails cannot find a key
+&ldquo;.default_text&rdquo;, then it would return &ldquo;Default Text&rdquo;, and that&rsquo;s what users would
+see.</p>
+
+<p>This behavior is desirable in production, where you don&rsquo;t want your app to crash
+because of a missing translation. But not in development or testing
+environments, where you&rsquo;d like to be able to easily catch missing translation
+keys.</p>
+
+<h2>Solution</h2>
+
+<p>If you happen to be calling I18n.translate directly, or for some other reason
+are not using the Rails-provided helper methods, then this 
+<a href="http://robots.thoughtbot.com/foolproof-i18n-setup-in-rails">blog post</a> from
+<a href="http://thoughtbot.com/">Thoughtbot</a> provides some useful information about
+custom exception handlers for I18n.</p>
+
+<p>The problem with the above approach when using the Rails #translate (and #t)
+helper methods is that no exceptions get raised, by default. (At least that was 
+the case for me, and I was forced to figure out another solution.)</p>
+
+<p>The solution is to explicitly enable this behavior by passing the option 
+raise: true to the helper method:</p>
+<div class="highlight plaintext"><table style="border-spacing: 0"><tbody><tr><td class="gutter gl" style="text-align: right"><pre class="lineno">1</pre></td><td class="code"><pre>t(".some_key", raise: true)
+</pre></td></tr></tbody></table>
+</div>
+
+<p>This works, but it requires a lot of repetition and is hard to apply to an
+existing code base. To automate this, you can create an initializer that inserts
+the raise: true option into all the #translate method calls, but only in certain
+environments:</p>
+<div class="highlight plaintext"><table style="border-spacing: 0"><tbody><tr><td class="gutter gl" style="text-align: right"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10</pre></td><td class="code"><pre>if Rails.env.development? || Rails.env.test?
+  module ApplicationHelper
+
+    def translate(key, options = {})
+      super(key, { raise: true }.merge(options))
+    end
+
+    alias :t :translate
+  end
+end
+</pre></td></tr></tbody></table>
+</div>
+</section>
+<footer class='post-footer'>
+<section class='author'>
+<h4>
+<a href='/author/brad-johnson/'>Brad Johnson</a>
+</h4>
+<p></p>
+Read
+<a href='/author/brad-johnson/'>more posts</a>
+by this author.
+</section>
+<section class='share'>
+<h4>Share this post</h4>
+<a class='icon-twitter' href='https://twitter.com/share?text=Rails Internationalization&amp;amp;url=http://www.bradleymosesjohnson.com/2014/12/15/rails-internationalization/' onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+<span class='hidden'>Twitter</span>
+</a>
+<a class='icon-facebook' href='https://www.facebook.com/sharer/sharer.php?u=http://www.bradleymosesjohnson.com/2014/12/15/rails-internationalization/' onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+<span class='hidden'>Facebook</span>
+</a>
+<a class='icon-google-plus' href='https://plus.google.com/share?url=http://www.bradleymosesjohnson.com/2014/12/15/rails-internationalization/' onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
+<span class='hidden'>Google+</span>
+</a>
+</section>
+</footer>
+</article>
+</main>
+<aside class='read-next'>
+<a class='no-cover read-next-story' href='/2014/10/08/fragment-caching-in-rails-4/'>
+<section class='post'>
+<h2>Fragment caching in Rails 4</h2>
+<p>Recently I implemented a nested caching scheme in a Rails application. I ran into a couple of interesting problems&hellip;</p>
+</section>
+</a>
+<a class='no-cover prev read-next-story' href='/2015/02/06/backup-dropbox-with-raspberry-pi/'>
+<section class='post'>
+<h2>Backup Dropbox with Raspberry Pi</h2>
+<p>With the recent release of the Raspberry Pi 2 I thought it would be good to document what I&rsquo;m&hellip;</p>
+</section>
+</a>
+</aside>
+
+<footer class='site-footer clearfix'>
+<section class='copyright'>
+<a href='/'>Brad Johnson</a>
+&copy;
+2015
+</section>
+<section class='poweredby'>
+Casper theme powered by
+<a href='https://ghost.org'>Ghost</a>
+</section>
+</footer>
+</div>
+<script src="/javascripts/application.js" type="text/javascript"></script>
+</body>
+</html>

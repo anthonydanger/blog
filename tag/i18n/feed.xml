@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Brad Johnson: i18n</title>
+  <subtitle>Posts tagged with i18n</subtitle>
+  <id>http://www.bradleymosesjohnson.com/</id>
+  <link href="http://www.bradleymosesjohnson.com/"/>
+  <link href="http://www.bradleymosesjohnson.com/tag/i18n/feed.xml" rel="self"/>
+  <updated>2015-02-05T16:00:00-08:00</updated>
+  <author>
+    <name>Brad Johnson</name>
+  </author>
+  <entry>
+    <title>Rails Internationalization</title>
+    <link rel="alternate" href="http://www.bradleymosesjohnson.com/2014/12/15/rails-internationalization/"/>
+    <id>http://www.bradleymosesjohnson.com/2014/12/15/rails-internationalization/</id>
+    <published>2014-12-14T16:00:00-08:00</published>
+    <updated>2015-05-17T17:00:40-07:00</updated>
+    <author>
+      <name>Brad Johnson</name>
+    </author>
+    <summary type="html">This post outlines an easy way to make Rails raise an exception when it finds
+missing I18n keys. This is helpful in development and testing environments as a
+way to quickly find and correct missing translation keys.
+
+Background
+
+Ruby on Rails provides</summary>
+  </entry>
+</feed>

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Brad Johnson: Sendy on EC2</title>
+<meta content='I&amp;rsquo;m doing some work for a nonprofit organization with a growing email list. Last month we passed 10,000 subscribers. Not a massive list, b...' name='description'>
+<meta charset='utf-8'>
+<meta content='width=device-width, initial-scale=1.0' name='viewport'>
+<meta content='IE=edge' http-equiv='X-UA-Compatible'>
+<meta content='True' name='HandheldFriendly'>
+<link rel="alternate" type="application/atom+xml" title="Atom Feed" href="/feed.xml" />
+<link href="/images/favicon.ico" rel="icon" type="image/ico" />
+<link href="/stylesheets/application.css" rel="stylesheet" type="text/css" />
+<link href='//fonts.googleapis.com/css?family=Merriweather:300,700,700italic,300italic|Open+Sans:700,400' rel='stylesheet' type='text/css'>
+</head>
+<body class='post-template nav-closed'>
+<div class='nav'>
+<h3 class='nav-title'>Menu</h3>
+<a class='nav-close' href='#'>
+<span class='hidden'>Close</span>
+</a>
+<ul>
+<li class='nav-home' role='presentation'>
+<a href='/'>Home</a>
+</li>
+<li class='nav-github' role='presentation'>
+<a href='https://github.com/cdale77'>GitHub</a>
+</li>
+</ul>
+<a class='subscribe-button icon-feed' href='/feed.xml'>Subscribe</a>
+</div>
+<span class='nav-cover'></span>
+
+<div class='site-wrapper'>
+<header class='main-header no-cover post-head'>
+<nav class='main-nav clearfix'>
+<a class='menu-button icon-menu' href='#'>
+<span class='word'>Menu</span>
+</a>
+</nav>
+</header>
+<main class='content' role='main'>
+<article class='post'>
+<header class='post-header'>
+<h1 class='post-title'>Sendy on EC2</h1>
+<section class='post-meta'>
+<time class='post-date' datetime='2014-06-17'>
+17 June 2014
+</time>
+on <a href='/tag/sendy/'>sendy</a>, <a href='/tag/aws/'>aws</a>, <a href='/tag/ec2/'>ec2</a>, <a href='/tag/email/'>email</a>
+</section>
+</header>
+<section class='post-content'><p>I&rsquo;m doing some work for a nonprofit organization with a growing email list. Last month we passed 10,000 subscribers. 
+Not a massive list, but our current platform was getting a little expensive. I looked at switching to MailChimp, but
+found their terms too restrictive and their service too opinionated. After doing some research I decided to check
+out <a href="http://sendy.co/">Sendy</a>. Sendy is a PHP application you install on a server. It provides an interface for
+using <a href="http://aws.amazon.com/ses/">Amazon SES</a>. You get reports, compose tools, bounce handling, etc. </p>
+
+<p>I&rsquo;ve been using Amazon AWS for a lot more lately (static site hosting with S3, for one thing) so I decided to create an
+EC2 server to host Sendy. Combining EC2 with SES means significant cost savings and a lot more flexibility. Here&rsquo;s a quick
+guide for getting Sendy up and running on an Amazon EC2 instance. </p>
+
+<p>I wanted this instance to be available on a subdomain: sendy.mydomain.com. When you purchase Sendy you have to
+tell them what domain Sendy will live at, but it&rsquo;s easy to change this later. Assuming you have things squared away with
+the Sendy folks, the first step will be setting up a subdomain. To accomplish this with Route 53,
+click on the hosted zone for your domain in the Route 53 control panel. Then click Go To Record Sets, then Create Record Set. 
+Create an A record with the name of sendy.mydomain.com, then Save Record Set. You&rsquo;ll come back to this later and enter
+the Elastic IP for the Sendy instance in the Value field. </p>
+
+<p>Now it&rsquo;s time to get an EC2 instance running. Amazon has good documentation. Be sure to go through the
+<a href="http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/get-set-up-for-amazon-ec2.html">setup guide</a> before you go through
+the <a href="http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EC2_GetStarted.html">main EC2 guide</a>. Use an Ubuntu image. You might want
+to specify another EBS volume for the Sendy database. Since my instance is dedicated to Sendy I just kept everything under one volume. 
+Another thing to consider when setting up your EC2 instance is turning on termination protection. </p>
+
+<p>After going through the Amazon guides you should be able to connect to your instance with SSH. 
+    ssh -i path/to/key/file ubuntu@amazon-instance-public-dns</p>
+
+<p>Once connected, update your instance:
+    sudo apt-get update &amp;&amp; sudo apt-get upgrade</p>
+
+<p>Next, as specified in the Ubuntu <a href="https://help.ubuntu.com/community/ApacheMySQLPHP">LAMP docs</a>, install a LAMP server:
+    sudo tasksel install lamp-server</p>
+
+<p>Connect to the MySQL database using the password supplied during the taskel install:
+    mysql -u root -p</p>
+
+<p>Create a database for Sendy:
+    CREATE DATABASE sendy;</p>
+
+<p>You should have a basic LAMP stack running at this point. If you go to the public DNS address provided by the EC2 web console, you should see
+the basic Apache success method. </p>
+
+<p>Now we&rsquo;ll set up an Elastic IP, associate it with the instance, fix Route 53, and all the basic setup will be complete. In the EC2 web console, click
+Elastic IPs (under Network &amp; Security). Allocate a new address and associate it with your Sendy instance. Then, go back to Route 53 and put that new IP
+address in the Value field for the A name record you created for Sendy (sendy.mydomain.com). After this you should be able to see the Apache success page
+via sendy.mydomain.com.</p>
+
+<p>The next few steps involve getting your stack properly configured for Sendy. Enable mod_rewrite:
+    sudo a2enmod rewrite</p>
+
+<p>install curl:
+    sudo apt-get install php5-curl</p>
+
+<p>and restart Apache:
+    sudo /etc/init.d/apache2 restart</p>
+
+<p>Note, this did not work for me for restarting Apache:
+    sudo service apache2 restart</p>
+
+<p>When I was getting this all working I saw a lot of things on Stack Overflow about editing the php.ini file to point to the curl library and turn on mod_rewrite.
+I didn&rsquo;t have to do that, but your mileage may vary. If you are having problems getting Sendy to work I&rsquo;d look at php.ini. In my version of Ubuntu (13.10) php.ini
+lives at /etc/php5/apache2/php.ini.</p>
+
+<p>I got this far and then had all kinds of problems until I realized I had to modify the Apache2 configuration file to allow the mod_overwrite extension. 
+The latter is required by Sendy. I don&rsquo;t claim to understand it, but it&rsquo;s related to Apache redirecting. So, you need to look at 
+/etc/apache2/sites-available/000-default.conf. Since this instance is dedicated to Sendy I just made my changes to the default configuration. Put this inside
+the VirtualHost *:80 if you are changing the default file like me, or in the proper section if you have more than one virtual host. </p>
+<div class="highlight plaintext"><table style="border-spacing: 0"><tbody><tr><td class="gutter gl" style="text-align: right"><pre class="lineno">1
+2
+3</pre></td><td class="code"><pre>&lt;Directory /var/www/html/&gt;
+  AllowOverride All
+&lt;/Directory&gt;
+</pre></td></tr></tbody></table>
+</div>
+
+<p>Ok, now you should be ready to follow the Sendy docs to finish the setup. Install Sendy in /var/wwww/html - not sure if that&rsquo;s required but Sendy support staff
+  suggested this in a form post. My working configuration, on which this is based, is installed in /var/www/html. The docs tell you to edit the config file 
+  locally before transferring the Sendy director to the server. I found it easier to use wget and S3 to get the original zip archive on the sever (use
+  apt-get to install unzip), and then use vim via ssh to edit the config file. </p>
+</section>
+<footer class='post-footer'>
+<section class='author'>
+<h4>
+<a href='/author/brad-johnson/'>Brad Johnson</a>
+</h4>
+<p></p>
+Read
+<a href='/author/brad-johnson/'>more posts</a>
+by this author.
+</section>
+<section class='share'>
+<h4>Share this post</h4>
+<a class='icon-twitter' href='https://twitter.com/share?text=Sendy on EC2&amp;amp;url=http://www.bradleymosesjohnson.com/2014/06/17/sendy-on-ec2/' onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+<span class='hidden'>Twitter</span>
+</a>
+<a class='icon-facebook' href='https://www.facebook.com/sharer/sharer.php?u=http://www.bradleymosesjohnson.com/2014/06/17/sendy-on-ec2/' onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+<span class='hidden'>Facebook</span>
+</a>
+<a class='icon-google-plus' href='https://plus.google.com/share?url=http://www.bradleymosesjohnson.com/2014/06/17/sendy-on-ec2/' onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
+<span class='hidden'>Google+</span>
+</a>
+</section>
+</footer>
+</article>
+</main>
+<aside class='read-next'>
+<a class='no-cover read-next-story' href='/2013/11/13/nationbuilder-webhooks/'>
+<section class='post'>
+<h2>NationBuilder Webhooks</h2>
+<p>I recently built a Rails application that integrates with NationBuilder and thought I&rsquo;d share the details. NationBuilder has two&hellip;</p>
+</section>
+</a>
+<a class='no-cover prev read-next-story' href='/2014/06/17/rails-multitenancy-with-pundit/'>
+<section class='post'>
+<h2>Rails Multitenancy with Pundit</h2>
+<p>I just finished building my first multi-tenant app with Rails. I used Pundit&rsquo;s policy scopes to handle scoping the&hellip;</p>
+</section>
+</a>
+</aside>
+
+<footer class='site-footer clearfix'>
+<section class='copyright'>
+<a href='/'>Brad Johnson</a>
+&copy;
+2015
+</section>
+<section class='poweredby'>
+Casper theme powered by
+<a href='https://ghost.org'>Ghost</a>
+</section>
+</footer>
+</div>
+<script src="/javascripts/application.js" type="text/javascript"></script>
+</body>
+</html>
