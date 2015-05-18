@@ -1,5 +1,5 @@
 ---
-title: Welcome to Ghost
+title: "ActBlue API"
 date: 2013-11-04 21:50
 tags: Getting Started
 layout: post
