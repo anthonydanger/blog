@@ -2,11 +2,11 @@
 layout: post
 title: "Backup Dropbox with Raspberry Pi"
 date: 2015-02-06
-comments: true
+comments: false
 tags: raspberry_pi, dropbox, aws, s3
 ---
 
-With the recent release of the 
+With the recent release of the
 [Raspberry Pi 2](http://www.raspberrypi.org/raspberry-pi-2-on-sale/) I thought
 it would be good to document what I'm doing with my old one. I've tried to use
 it as a media center or network backup drive. Neither of those really seemed
