@@ -108,7 +108,7 @@ how I have things set up.
 has_attached_file :file_attachment, s3_permissions: private
 
 validates_attachment_content_type :file_attachment,
-                                  contenty_type: ["image/jpeg", "image/png"]
+                                  content_type: ["image/jpeg", "image/png"]
 ```
 
 ##Angular
