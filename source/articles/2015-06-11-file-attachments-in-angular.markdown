@@ -19,8 +19,8 @@ The first step is to create an account with [AWS](https://aws.amazon.com).
 ###S3
 Click on the S3 menu on the AWS web console, and create a bucket. I usually
 make different buckets for different environments: production, staging,
-development. Usually I use the development bucket for testing. I also generally
-make different buckets for different types of files -- for example, 
+development, and use the development bucket for testing. I also generally
+make different buckets for different types of files -- for example,
 file attachments, archived reports, database dumps, etc.
 
 I might have the following buckets:
@@ -90,15 +90,19 @@ production:
   aws_secret: <%= ENV['AWS_SECRET'] %>
 ```
 
-
 ###Paperclip
 The [Paperclip docs](https://github.com/thoughtbot/paperclip) should give you
 all the information you need. Follow their instructions to set things up. In
-particular you should pay attention to the Security Validations section, to
+particular you should pay attention to the Security Validations section to
 prevent spoofing of upload file type. Another aspect of
 security - making sure your files are only accessible to the correct users, is
 dealt with below. For now you can follow along with the Paperclip docs and do
-a simple implementation.
+a simple implementation. You can find a lot of detailed information about how
+to wire up Paperclip to use S3 [here]
+(http://www.rubydoc.info/gems/paperclip/Paperclip/Storage/S3)
+
+Per the Paperclip docs, we need to make some changes to our models. Here is
+how I have things set up.
 
 ```ruby
 has_attached_file :file_attachment, s3_permissions: private
@@ -142,7 +146,7 @@ window. When the user submits the form, the save() method in my controller
 passes the form data to a service that takes the form data, and optionally
 the id of the resource, in the case of editing the resource. I think these
 should really be combined into a single method, but it works just fine like
-this. Notice I do not trust the id of the form, but instead get it from
+this. Notice I do not trust the id coming from the form, but instead get it from
 the resource attached to $scope. Of course on the Rails side we check user
 authorization as well, so a user could not just change the id of a resource
 and edit something they shouldn't. For this article I won't include my
@@ -194,18 +198,18 @@ angular.module("service")
 ##Rails Controllers
 Because we are using the Upload object to make the API call, and not Restangular
 like we are through the rest of the app, I needed to manipulate the request
-parameters a bit. I'm
-doing two things here. First, parsing the nested resource hash into json,
+parameters a bit. There are two steps to this.
+First, parsing the nested resource hash into json,
 then creating a Ruby hash that will be have like the normal params hash. This
 is necessary because nesting my_resource under the fields key when setting
-options for the JavaScript Upload object (lines 13-15 above) results in this 
+options for the JavaScript Upload object (lines 13-15 above) results in this
 data not being properly serialized. So we do it manually.
 
 Second, I nest the file parameter under the my_resource
 parameter as it would naturally be using the Paperclip Rails view helpers.
 These two steps make it easy to use the payload params just as I normally would.
 
-I am omitting a lot of code for clarity -- code to check authrozation, handle
+I am omitting a lot of code for clarity -- code to check authorization, handle
 save failures, etc.
 
 ```ruby
@@ -235,11 +239,11 @@ end
 ##Secure downloads
 By now we should be able to create and edit file attachments. Allowing
 users to download them securely requires an additional step. We will do things
-similarly to how [ThoughtBot recomends]
+similarly to how [ThoughtBot recommends]
 (https://github.com/thoughtbot/paperclip/wiki/Restricting-Access-to-Objects-Stored-on-Amazon-S3).
-The first thing we will do is define a method in our controller to generate a
+First we will define a method in our controller to generate a
 secure download url for the resource. To do this we'll use a method provided by
-Paperclip thatcreates a hard-to-guess expiring downloadable url for the resource.
+Paperclip that creates a hard-to-guess expiring downloadable url for the resource.
 
 ```ruby
   def file_attachment_url
