@@ -55,12 +55,14 @@ set :casper, {
   },
   navigation: {
     "Home" => "/",
+    "About" => "/about",
     "GitHub" => "https://github.com/cdale77"
   }
 }
 
 page '/feed.xml', layout: false
 page '/sitemap.xml', layout: false
+page '/about.html', layout: "layout"
 
 ignore '/partials/*'
 
